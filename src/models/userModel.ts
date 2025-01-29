@@ -1,7 +1,25 @@
-import mongoose, { InferSchemaType, model, Schema } from "mongoose";
+import mongoose, { Document, Schema } from "mongoose";
 import paginate from "mongoose-paginate-v2";
+interface IUser extends Document {
+  firstName: string;
+  lastName: string;
+  email: string;
+  googleId: string;
+  password: string;
+  role: "user" | "admin";
+  phoneNumber: string;
+  emailVerified: boolean;
+  profilePicture: string;
+}
 
-const userSchema = new Schema(
+interface PaginateUserModel<T extends Document> extends mongoose.Model<T> {
+  paginate(
+    query?: object,
+    options?: mongoose.PaginateOptions
+  ): Promise<mongoose.PaginateResult<T>>;
+}
+
+const userSchema = new Schema<IUser>(
   {
     email: {
       type: String,
@@ -42,13 +60,8 @@ const userSchema = new Schema(
 
 userSchema.plugin(paginate);
 
-type UserType = InferSchemaType<typeof userSchema>;
-
-export interface UserDocument extends mongoose.Document, UserType {}
-
-const userModel = model<UserDocument, mongoose.PaginateModel<UserDocument>>(
+const userModel = mongoose.model<IUser, PaginateUserModel<IUser>>(
   "user",
   userSchema
 );
-
 export default userModel;

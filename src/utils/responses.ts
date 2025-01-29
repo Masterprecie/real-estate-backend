@@ -18,13 +18,15 @@ export const sendSuccessResponse = (
   res: Response,
   message: string,
   data: any = null,
-  accessToken?: string
+  accessToken?: string,
+  refreshToken?: string
 ): void => {
   res.status(200).json({
     error: false,
     status: 200,
     message,
     accessToken,
+    refreshToken,
     data,
   });
 };

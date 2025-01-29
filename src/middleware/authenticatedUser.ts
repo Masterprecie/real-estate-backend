@@ -18,12 +18,21 @@ const authenticatedUser = async (
     }
 
     const decoded = verifyToken(token) as JwtPayload;
-    const user = (await userModel.findById(decoded.userId)) as { _id: string };
+
+    // Check if the token is expired
+    const currentTime = Math.floor(Date.now() / 1000);
+    if (decoded.exp && decoded.exp < currentTime) {
+      sendErrorResponse(res, 401, "Access token has expired");
+      return;
+    }
+
+    const user = await userModel.findById(decoded.userId);
 
     if (!user) {
       sendErrorResponse(res, 400, "User not found");
       return;
     }
+
     req.user = decoded;
 
     next();

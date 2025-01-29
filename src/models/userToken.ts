@@ -6,9 +6,11 @@ const userTokenSchema = new Schema({
     required: true,
     ref: "user",
   },
+  refreshToken: {
+    type: String,
+  },
   code: {
     type: String,
-    required: true,
   },
   expiresAt: {
     type: Date,

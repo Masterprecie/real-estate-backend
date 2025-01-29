@@ -4,8 +4,12 @@ import { hashPassword, comparePassword } from "../utils/bcrypt";
 import validateAuth from "../utils/validations";
 import { Request, Response, NextFunction } from "express";
 import sendEmail from "../utils/emailUtils";
-import { generateToken } from "../utils/jwt";
-import { AuthenticatedRequest, User } from "../types/user";
+import {
+  generateRefreshToken,
+  generateToken,
+  verifyRefreshToken,
+} from "../utils/jwt";
+import { AuthenticatedRequest, JwtPayload, User } from "../types/user";
 import userTokenModel from "../models/userToken";
 import { sendErrorResponse, sendSuccessResponse } from "../utils/responses";
 
@@ -57,7 +61,7 @@ export const registerUser = async (
     );
     sendSuccessResponse(res, "User Created successful");
   } catch (error) {
-    console.log(error);
+    console.log((error as Error).message);
     next(error);
   }
 };
@@ -90,8 +94,9 @@ export const verifyEmail = async (
       emailVerified: true,
     });
 
-    await userTokenModel.deleteMany({
+    await userTokenModel.deleteOne({
       userId: tokenRecord.userId,
+      code: code,
     });
 
     sendSuccessResponse(res, "Email verified successfully");
@@ -126,22 +131,82 @@ export const loginUser = async (
       return;
     }
 
-    const accessToken = generateToken(user._id, user.email, user.role);
-
-    sendSuccessResponse(
-      res,
-      "Login successful",
-      {
-        user: {
-          id: user._id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          role: user.role,
-        },
-      },
-      accessToken
+    const accessToken = generateToken(
+      user._id.toString(),
+      user.email,
+      user.role
     );
+    const refreshToken = generateRefreshToken(user._id.toString(), user.email);
+
+    await userTokenModel.create({
+      userId: user._id,
+      refreshToken: refreshToken,
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+    });
+
+    sendSuccessResponse(res, "Login successful", {
+      accessToken,
+      refreshToken,
+      user: {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+};
+
+export const refreshToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      sendErrorResponse(res, 400, "Refresh token is required");
+      return;
+    }
+
+    let decoded: JwtPayload;
+    try {
+      decoded = verifyRefreshToken(refreshToken) as JwtPayload;
+    } catch (error) {
+      sendErrorResponse(res, 400, "Invalid refresh token");
+      return;
+    }
+
+    const tokenRecord = await userTokenModel.findOne({
+      refreshToken: refreshToken,
+    });
+
+    if (!tokenRecord) {
+      sendErrorResponse(res, 400, "Invalid refreshhh token");
+      return;
+    }
+
+    const user = (await userModel.findById(tokenRecord.userId)) as User;
+
+    if (!user) {
+      sendErrorResponse(res, 400, "User not found");
+      return;
+    }
+
+    const accessToken = generateToken(
+      user._id.toString(),
+      user.email,
+      user.role
+    );
+
+    sendSuccessResponse(res, "New access token generated", {
+      accessToken,
+    });
   } catch (error) {
     console.log(error);
     next(error);
@@ -218,8 +283,9 @@ export const resetPassword = async (
       { password: hashedPassword }
     );
 
-    await userTokenModel.deleteMany({
+    await userTokenModel.deleteOne({
       userId: user._id,
+      code: code,
     });
 
     sendSuccessResponse(res, "Password reset successfully");

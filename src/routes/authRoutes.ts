@@ -2,6 +2,7 @@ import express from "express";
 import {
   forgetPassword,
   loginUser,
+  refreshToken,
   registerUser,
   resendToken,
   resetPassword,
@@ -15,6 +16,8 @@ authRoutes.post("/register", registerUser);
 authRoutes.post("/verify-email", verifyEmail);
 
 authRoutes.post("/login", loginUser);
+
+authRoutes.post("/refresh-token", refreshToken);
 
 authRoutes.post("/forget-password", forgetPassword);
 

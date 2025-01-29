@@ -1,6 +1,7 @@
 import { Request } from "express";
+import { Document } from "mongoose";
 
-export interface User {
+export interface User extends Document {
   _id: string;
   email: string;
   firstName: string;
@@ -19,4 +20,5 @@ export interface JwtPayload {
   userId: string;
   email: string;
   role: string;
+  exp?: number;
 }
