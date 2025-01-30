@@ -17,12 +17,16 @@ const authenticatedUser = async (
       return;
     }
 
-    const decoded = verifyToken(token) as JwtPayload;
+    let decoded: JwtPayload;
 
-    // Check if the token is expired
-    const currentTime = Math.floor(Date.now() / 1000);
-    if (decoded.exp && decoded.exp < currentTime) {
-      sendErrorResponse(res, 401, "Access token has expired");
+    try {
+      decoded = verifyToken(token) as JwtPayload;
+    } catch (err) {
+      if (err instanceof Error && err.message === "TokenExpiredError") {
+        sendErrorResponse(res, 401, "Access token has expired");
+        return;
+      }
+      sendErrorResponse(res, 401, "Unauthorized");
       return;
     }
 

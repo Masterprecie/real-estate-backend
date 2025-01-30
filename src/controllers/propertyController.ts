@@ -8,11 +8,19 @@ export const getProperties = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { page = 1, limit = 10, category } = req.query;
+    const { page = 1, limit = 10, category, search } = req.query;
 
     const query: any = {};
     if (category) {
       query.category = category;
+    }
+
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+        { location: { $regex: search, $options: "i" } },
+      ];
     }
 
     const options = {

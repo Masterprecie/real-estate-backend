@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { JwtPayload } from "../types/user";
 
 export const generateToken = (userId: string, email: string, role: string) => {
   return jwt.sign({ userId, email, role }, process.env.JWT_SECRET as string, {
@@ -6,8 +7,16 @@ export const generateToken = (userId: string, email: string, role: string) => {
   });
 };
 
-export const verifyToken = (token: string) => {
-  return jwt.verify(token, process.env.JWT_SECRET as string);
+export const verifyToken = (token: string): JwtPayload | null => {
+  try {
+    const secretKey = process.env.JWT_SECRET as string;
+    return jwt.verify(token, secretKey) as JwtPayload;
+  } catch (err) {
+    if ((err as Error).name === "TokenExpiredError") {
+      throw new Error("TokenExpiredError");
+    }
+    throw new Error("Unauthorized");
+  }
 };
 
 export const generateRefreshToken = (userId: string, email: string): string => {
