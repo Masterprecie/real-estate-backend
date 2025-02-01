@@ -29,7 +29,7 @@ propertyRoutes.put(
 );
 
 propertyRoutes.delete(
-  "/",
+  "/:id",
   authenticatedUser,
   rolesAllowed("admin"),
   deleteProperty

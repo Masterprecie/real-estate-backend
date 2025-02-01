@@ -5,9 +5,9 @@ interface IProperty extends Document {
   title: string;
   description: string;
   price: number;
+  priceDuration: string;
   location: string;
   status: "rent" | "sale";
-  type: "house" | "apartment" | "office";
   category: string;
   bedrooms: number;
   facilities: string[];
@@ -26,9 +26,9 @@ const propertySchema = new Schema<IProperty>(
     title: { type: String },
     description: { type: String },
     price: { type: Number },
+    priceDuration: { type: String },
     location: { type: String },
-    status: { type: String, enum: ["rent", "sale"], default: "sale" },
-    type: { type: String, enum: ["house", "apartment", "office"] },
+    status: { type: String, enum: ["rent", "sale"] },
     category: {
       type: String,
       enum: [

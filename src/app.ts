@@ -16,13 +16,21 @@ import propertyRatingRoutes from "./routes/propertyRatingRoutes";
 import userRoutes from "./routes/userRoutes";
 
 const app = express();
-
-app.use(
-  cors({
-    origin: process.env.CLIENT_URL,
-    credentials: true,
-  })
-);
+// const allowedOrigins = process.env.CLIENT_URLS?.split(",") || [];
+// const corsOptions = {
+//   origin: (
+//     origin: string | undefined,
+//     callback: (err: Error | null, allow?: boolean) => void
+//   ) => {
+//     if (!origin || allowedOrigins.includes(origin)) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error("Not allowed by CORS"));
+//     }
+//   },
+//   credentials: true,
+// };
+app.use(cors());
 
 app.use(logger("dev"));
 app.use(express.json());
