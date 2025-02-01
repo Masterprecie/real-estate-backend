@@ -23,6 +23,6 @@ authRoutes.post("/forget-password", forgetPassword);
 
 authRoutes.post("/reset-password", resetPassword);
 
-authRoutes.post("/resend-token", resendToken);
+authRoutes.post("/resend-code", resendToken);
 
 export default authRoutes;

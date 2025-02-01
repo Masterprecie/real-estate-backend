@@ -8,7 +8,14 @@ export const getProperties = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { page = 1, limit = 10, category, search } = req.query;
+    const {
+      page = 1,
+      limit = 10,
+      category,
+      search,
+      minPrice,
+      maxPrice,
+    } = req.query;
 
     const query: any = {};
     if (category) {
@@ -20,8 +27,16 @@ export const getProperties = async (
         { title: { $regex: search, $options: "i" } },
         { description: { $regex: search, $options: "i" } },
         { location: { $regex: search, $options: "i" } },
-        { price: { $regex: search, $options: "i" } },
       ];
+    }
+    if (minPrice || maxPrice) {
+      query.price = {};
+      if (minPrice) {
+        query.price.$gte = parseFloat(minPrice as string);
+      }
+      if (maxPrice) {
+        query.price.$lte = parseFloat(maxPrice as string);
+      }
     }
 
     const options = {
